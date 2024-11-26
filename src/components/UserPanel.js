@@ -1,34 +1,48 @@
-import React from 'react';
+// src/components/UserPanel.js
+import React, { useState } from 'react';
 
-const UserPanel = ({ playerName, handleNameChange, addPlayer, players, onShuffle, onStart }) => {
+const UserPanel = ({ onAddPlayer, onShuffle, onStart }) => {
+  const [playerName, setPlayerName] = useState('');
+  const [players, setPlayers] = useState([]);
+
+  const handleAddPlayer = () => {
+    if (playerName.trim() !== '') {
+      setPlayers([...players, { name: playerName }]);
+      onAddPlayer([...players, { name: playerName }]);
+      setPlayerName('');
+    }
+  };
+
+  const handleShuffle = () => {
+    onShuffle();
+  };
+
+  const handleStart = () => {
+    onStart();
+  };
+
   return (
-    <div style={{ padding: '20px', width: '300px', borderRight: '1px solid rgb(204, 204, 204)' }}>
+    <div>
       <h3>BetBall 설정</h3>
-      
-      {/* 참여자 이름 입력 필드 */}
       <input
         type="text"
         placeholder="참여자 이름"
         value={playerName}
-        onChange={handleNameChange}
+        onChange={(e) => setPlayerName(e.target.value)}
       />
-      
-      {/* 참여자 추가 버튼 */}
-      <button onClick={addPlayer}>참여자 추가</button><br />
-      
-      {/* 플레이어 리스트 렌더링 */}
+      <button onClick={handleAddPlayer}>참여자 추가</button>
+      <br />
+      <button onClick={handleShuffle}>섞기</button>
+      <button onClick={handleStart}>시작</button>
+
       <div>
         <h4>참여자 목록</h4>
         <ul>
           {players.map((player, index) => (
-            <li key={index}>{player}</li>
+            <li key={index}>{player.name}</li>
           ))}
         </ul>
       </div>
-
-      {/* 섞기 및 시작 버튼 */}
-      <button onClick={onShuffle}>섞기</button>
-      <button onClick={onStart}>시작</button>
     </div>
   );
 };

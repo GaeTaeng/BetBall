@@ -1,72 +1,50 @@
 // src/components/GameCanvas.js
 import React, { useEffect, useRef, useState } from 'react';
-import { Ball } from './Ball';
-import { Obstacle } from './Obstacle';
-import { PhysicsEngine } from '../physics/PysicsEngine';
+import Ball from './Ball';
+import Obstacle from './Obstacle';
+import { setupWorld, setupCollisionEvents } from '../physics/physicsEngine';
 
-const GameCanvas = ({ players, gameStarted }) => {
+const ballColors = ['#FF5733', '#33FF57', '#3357FF', '#FF33A1', '#FFD700']; // 공 색상 배열
+
+const GameCanvas = ({ players = [], obstacles = [] }) => {
   const canvasRef = useRef(null);
-  const [obstacles, setObstacles] = useState([]);
   const [balls, setBalls] = useState([]);
-  const [ballColors, setBallColors] = useState([]);
-  const physicsEngine = new PhysicsEngine();
 
-  // 장애물 초기화
-  const initializeObstacles = () => {
-    const newObstacles = [
-      new Obstacle('rect', 100, 150, { width: 50, height: 10 }),
-      new Obstacle('circle', 250, 250, { radius: 25 }),
-      new Obstacle('rect', 400, 350, { width: 80, height: 15 }),
-      new Obstacle('circle', 600, 400, { radius: 30 }),
-    ];
-    setObstacles(newObstacles);
-  };
-
-  // 공 초기화
-  const initializeBalls = () => {
-    const initialBalls = players.map((_, index) => new Ball(50 + index * 100, 100, ballColors[index]));
-    setBalls(initialBalls);
-  };
-
-  // 게임 시작 시 공 및 장애물 초기화
   useEffect(() => {
-    if (gameStarted) {
-      initializeBalls();
-      initializeObstacles();
+    if (players.length > 0) {
+      const newBalls = players.map((player, index) => {
+        const ballColor = ballColors[index % ballColors.length];
+        return new Ball(100 + index * 100, 0, 20, ballColor, player.name);
+      });
+      setBalls(newBalls);
     }
-  }, [gameStarted, players, ballColors]);
+  }, [players]);
 
-  // 캔버스 그리기
   useEffect(() => {
-    const canvas = canvasRef.current;
-    const ctx = canvas.getContext('2d');
+    const ctx = canvasRef.current.getContext('2d');
+    const intervalId = setInterval(() => {
+      ctx.clearRect(0, 0, canvasRef.current.width, canvasRef.current.height);
 
-    const drawGame = () => {
-      ctx.clearRect(0, 0, canvas.width, canvas.height); // 캔버스를 지운다
-
-      // 장애물 그리기
-      obstacles.forEach(obstacle => obstacle.draw(ctx));
-
-      // 공 그리기
-      balls.forEach((ball, index) => {
+      balls.forEach(ball => {
+        ball.move();
         ball.draw(ctx);
-        ball.drawName(ctx, players[index]); // 공 위에 이름 표시
       });
 
-      // 물리 엔진 업데이트 및 충돌 처리
-      physicsEngine.applyGravity(balls);
-      physicsEngine.handleCollisions(balls, obstacles);
-      physicsEngine.updatePhysics(balls);
-    };
+      obstacles.forEach(obstacle => {
+        obstacle.draw(ctx);
+      });
 
-    const gameInterval = setInterval(drawGame, 16); // 60fps로 게임을 그리기
+      setupCollisionEvents(balls, obstacles); // 충돌 처리
+      setupWorld(balls, obstacles); // 물리 엔진 처리
 
-    return () => clearInterval(gameInterval); // 컴포넌트 언마운트 시 인터벌 정리
-  }, [players, gameStarted, obstacles, balls]);
+    }, 1000 / 60); // 60 FPS
+
+    return () => clearInterval(intervalId);
+  }, [balls, obstacles]);
 
   return (
     <div>
-      <canvas ref={canvasRef} width="800" height="600" style={{ background: 'rgb(240, 240, 240)' }} />
+      <canvas ref={canvasRef} width="1100" height="600"></canvas>
     </div>
   );
 };

@@ -1,43 +1,34 @@
+// src/App.js
 import React, { useState } from 'react';
-import UserPanel from './components/UserPanel';
 import GameCanvas from './components/GameCanvas';
+import UserPanel from './components/UserPanel';
+import Obstacle from './components/Obstacle';
 
 const App = () => {
   const [players, setPlayers] = useState([]);
-  const [playerName, setPlayerName] = useState(""); // 입력된 플레이어 이름
-  const [gameStarted, setGameStarted] = useState(false); // 게임 시작 상태
+  const [obstacles, setObstacles] = useState([
+    new Obstacle(300, 200, 500, 10, '#ff0000', 0.01), // 회전 장애물 예시
+    new Obstacle(500, 400, 50, 10, '#00ff00', -0.01), // 반시계방향 회전 장애물
+    new Obstacle(500, 300, 50, 10, '#00ff00', -0.01), // 반시계방향 회전 장애물
+  ]);
 
-  // 플레이어 이름 추가
-  const addPlayer = () => {
-    if (!playerName.trim()) return; // 공백 입력 방지
-    setPlayers((prevPlayers) => [...prevPlayers, playerName]);
-    setPlayerName(""); // 입력 필드 초기화
+  const handleAddPlayer = (newPlayers) => {
+    setPlayers(newPlayers);
   };
 
-  // 참여자 이름 업데이트
-  const handleNameChange = (e) => {
-    setPlayerName(e.target.value);
+  const handleShuffle = () => {
+    setPlayers(prevPlayers => [...prevPlayers].sort(() => Math.random() - 0.5));
   };
 
-  const shufflePlayers = () => {
-    setPlayers((prevPlayers) => [...prevPlayers].sort(() => Math.random() - 0.5));
-  };
-
-  const startGame = () => {
-    setGameStarted(true); // 게임 시작 상태로 변경
+  const handleStart = () => {
+    // 시작 버튼이 눌렸을 때 게임 시작
+    console.log("게임 시작!");
   };
 
   return (
     <div style={{ display: 'flex', height: '100vh' }}>
-      <UserPanel
-        playerName={playerName}
-        handleNameChange={handleNameChange}
-        addPlayer={addPlayer}
-        players={players}
-        onShuffle={shufflePlayers}
-        onStart={startGame}
-      />
-      <GameCanvas players={players} gameStarted={gameStarted} />
+      <UserPanel onAddPlayer={handleAddPlayer} onShuffle={handleShuffle} onStart={handleStart} />
+      <GameCanvas players={players} obstacles={obstacles} />
     </div>
   );
 };

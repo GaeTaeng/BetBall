@@ -1,46 +1,43 @@
 // src/components/Ball.js
-export class Ball {
-    constructor(x, y, color) {
-      this.x = x;
-      this.y = y;
-      this.radius = 20;
-      this.color = color;
-      this.velocity = { dx: 0, dy: 0 };
+class Ball {
+  constructor(x, y, radius, color, name) {
+    this.x = x;
+    this.y = y;
+    this.radius = radius;
+    this.color = color;
+    this.name = name;
+    this.velocityX = 2;  // 공의 x축 속도 (초기값)
+    this.velocityY = 1;  // 공의 y축 속도 (초기값)
+  }
+
+  move() {
+    this.y += this.velocityY; // 중력 효과로 y축 방향으로 속도 증가
+    this.x += this.velocityX; // 공이 좌우로 움직임
+
+    // 바닥에 부딪히면 반사되도록 (예시로 바닥 위치 600px로 설정)
+    if (this.y + this.radius >= 600) {
+      this.velocityY = -Math.abs(this.velocityY); // 아래로 튕겨나가도록 반사
     }
-  
-    // 공 그리기
-    draw(ctx) {
-      ctx.beginPath();
-      ctx.arc(this.x, this.y, this.radius, 0, Math.PI * 2);
-      ctx.fillStyle = this.color;
-      ctx.fill();
-      ctx.stroke();
-    }
-  
-    // 공 위치 업데이트
-    update() {
-      this.y += this.velocity.dy;
-      this.x += this.velocity.dx;
-    }
-  
-    // 중력 적용
-    applyGravity(gravity) {
-      this.velocity.dy += gravity;
-    }
-  
-    // 바닥에 닿았을 때
-    handleFloorCollision(canvasHeight) {
-      if (this.y >= canvasHeight - this.radius) {
-        this.y = canvasHeight - this.radius; // 바닥에 닿으면 위치 고정
-        this.velocity.dy = 0; // 속도 초기화
-      }
-    }
-  
-    // 공 위에 이름 그리기
-    drawName(ctx, name) {
-      ctx.fillStyle = 'black';
-      ctx.font = '12px Arial';
-      ctx.fillText(name, this.x - 20, this.y - 30); // 공 위에 이름
+
+    // 왼쪽, 오른쪽 벽에 부딪히면 반사되도록 (가로 1100px 설정)
+    if (this.x - this.radius <= 0 || this.x + this.radius >= 1100) {
+      this.velocityX = -this.velocityX;
     }
   }
-  
+
+  draw(ctx) {
+    ctx.beginPath();
+    ctx.arc(this.x, this.y, this.radius, 0, Math.PI * 2);
+    ctx.fillStyle = this.color;
+    ctx.fill();
+    ctx.stroke();
+    ctx.closePath();
+
+    // 공 위에 이름을 표시
+    ctx.font = '12px Arial';
+    ctx.fillStyle = 'black';
+    ctx.fillText(this.name, this.x - this.radius, this.y - this.radius - 5);
+  }
+}
+
+export default Ball;
