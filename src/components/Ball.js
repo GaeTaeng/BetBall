@@ -1,28 +1,22 @@
 // src/components/Ball.js
 class Ball {
-  constructor(x, y, radius, color, name) {
+  constructor(x, y, radius, color, name, isActive = false) {
     this.x = x;
     this.y = y;
     this.radius = radius;
     this.color = color;
     this.name = name;
-    this.velocityX = 2;  // 공의 x축 속도 (초기값)
-    this.velocityY = 1;  // 공의 y축 속도 (초기값)
+    this.velocityX = 0;
+    this.velocityY = 0;
+    this.isActive = isActive;
+    this.finished = false;
   }
 
   move() {
+    if (!this.isActive) return; // 비활성화 상태면 움직이지 않음
+    
     this.y += this.velocityY; // 중력 효과로 y축 방향으로 속도 증가
     this.x += this.velocityX; // 공이 좌우로 움직임
-
-    // 바닥에 부딪히면 반사되도록 (예시로 바닥 위치 600px로 설정)
-    if (this.y + this.radius >= 600) {
-      this.velocityY = -Math.abs(this.velocityY); // 아래로 튕겨나가도록 반사
-    }
-
-    // 왼쪽, 오른쪽 벽에 부딪히면 반사되도록 (가로 1100px 설정)
-    if (this.x - this.radius <= 0 || this.x + this.radius >= 1100) {
-      this.velocityX = -this.velocityX;
-    }
   }
 
   draw(ctx) {
