@@ -59,5 +59,7 @@ src/
 ├── physics/
 │   ├── physicsEngine.js   // 물리 계산 처리
 │   └── collision.js       // 충돌 감지 로직
+├── styles/
+│   ├── Global.css   // 스타일
 ├── App.js                 // 메인 애플리케이션 진입점
 └── index.js               // React 앱 부트스트랩
