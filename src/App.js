@@ -3,13 +3,15 @@ import React, { useState } from 'react';
 import GameCanvas from './components/GameCanvas';
 import UserPanel from './components/UserPanel';
 import Obstacle from './components/Obstacle';
+import { getRandomColor } from './utils';
 
 const App = () => {
   const [players, setPlayers] = useState([]);
   const [obstacles, setObstacles] = useState([
-    new Obstacle(300, 200, 500, 10, '#ff0000', 0.01), // 회전 장애물 예시
-    new Obstacle(500, 400, 50, 10, '#00ff00', -0.01), // 반시계방향 회전 장애물
-    new Obstacle(500, 300, 50, 10, '#00ff00', -0.01), // 반시계방향 회전 장애물
+    new Obstacle(300, 300, 10, 100,getRandomColor(), 'rotating', 0.05), // 회전 장애물 예시
+    new Obstacle(500, 400, 50, 10, getRandomColor(),'rotating', -0.01), // 반시계방향 회전 장애물
+    new Obstacle(500, 300, 50, 10, getRandomColor(),'rotating', -0.01), // 반시계방향 회전 장애물
+    new Obstacle(500, 500, 30, 10, getRandomColor(),'circular'),
   ]);
 
   const handleAddPlayer = (newPlayers) => {

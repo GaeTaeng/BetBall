@@ -3,9 +3,8 @@ import React, { useEffect, useRef, useState } from 'react';
 import Ball from './Ball';
 import Obstacle from './Obstacle';
 import { setupWorld, setupCollisionEvents } from '../physics/physicsEngine';
-
-const ballColors = ['#FF5733', '#33FF57', '#3357FF', '#FF33A1', '#FFD700']; // 공 색상 배열
-
+import { getRandomColor } from '../utils';
+ 
 const GameCanvas = ({ players = [], obstacles = [] }) => {
   const canvasRef = useRef(null);
   const [balls, setBalls] = useState([]);
@@ -13,8 +12,8 @@ const GameCanvas = ({ players = [], obstacles = [] }) => {
   useEffect(() => {
     if (players.length > 0) {
       const newBalls = players.map((player, index) => {
-        const ballColor = ballColors[index % ballColors.length];
-        return new Ball(100 + index * 100, 0, 20, ballColor, player.name);
+        const ballColor = getRandomColor();
+        return new Ball(100 + index * 100, 0, 10, ballColor, player.name);
       });
       setBalls(newBalls);
     }
