@@ -1,13 +1,13 @@
 {
   "files": {
     "main.css": "/BetBall/static/css/main.6c2216f0.css",
-    "main.js": "/BetBall/static/js/main.71a5f31f.js",
+    "main.js": "/BetBall/static/js/main.fdf7dfe6.js",
     "index.html": "/BetBall/index.html",
     "main.6c2216f0.css.map": "/BetBall/static/css/main.6c2216f0.css.map",
-    "main.71a5f31f.js.map": "/BetBall/static/js/main.71a5f31f.js.map"
+    "main.fdf7dfe6.js.map": "/BetBall/static/js/main.fdf7dfe6.js.map"
   },
   "entrypoints": [
     "static/css/main.6c2216f0.css",
-    "static/js/main.71a5f31f.js"
+    "static/js/main.fdf7dfe6.js"
   ]
 }
