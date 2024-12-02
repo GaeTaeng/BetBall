@@ -9,12 +9,8 @@ const createRandomObstacles = () => {
   const obstacles = [];
   const types = [
     'rotating',
-    'oscillating-horizontal',
-    'oscillating-vertical',
     'circular',
-    'spinning-circle',
     'triangle',
-    'bouncing',
     'rotating-stick'
   ];
 
@@ -168,16 +164,14 @@ const App = () => {
   };
 
   const handleStart = () => {
-    if (players.length >= 2) { // 최소 2명 이상일 때만 시작
+    if (players.length >= 2) {
       setIsGameStarted(true);
-      setGameResult(null);
-      setPlayers(prevPlayers => {
-        return prevPlayers.map(player => ({
+      setPlayers(prevPlayers => 
+        prevPlayers.map(player => ({
           ...player,
-          isActive: true,
-          score: 0
-        }));
-      });
+          isActive: true
+        }))
+      );
     }
   };
 

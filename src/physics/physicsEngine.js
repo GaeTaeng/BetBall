@@ -2,10 +2,10 @@
 
 // 전역 상수 정의
 const PHYSICS_CONSTANTS = {
-  MAX_SPEED: 8,
   GRAVITY: 0.3,
   AIR_RESISTANCE: 0.99,
-  RESTITUTION: 0.8
+  RESTITUTION: 0.7,
+  MAX_SPEED: 15
 };
 
 // 공과 장애물 간의 충돌 감지 및 처리
@@ -145,72 +145,68 @@ const handleOscillatingObstacleCollision = (ball, obstacle) => {
 
 // 원형 장애물 충돌 처리
 const handleCircularObstacleCollision = (ball, obstacle) => {
-  const dx = ball.x - (obstacle.x + obstacle.width / 2);
-  const dy = ball.y - (obstacle.y + obstacle.height / 2);
+  const dx = ball.x - obstacle.x;
+  const dy = ball.y - obstacle.y;
   const distance = Math.sqrt(dx * dx + dy * dy);
-  const minDistance = ball.radius + Math.min(obstacle.width, obstacle.height) / 2;
+  const minDistance = ball.radius + obstacle.radius;
 
   if (distance < minDistance) {
     // 충돌 발생
-    const angle = Math.atan2(dy, dx);
-    const normalX = Math.cos(angle);
-    const normalY = Math.sin(angle);
-
-    // 겹침 보정
     const overlap = minDistance - distance;
-    ball.x += overlap * normalX;
-    ball.y += overlap * normalY;
+    const normal = {
+      x: dx / distance,
+      y: dy / distance
+    };
 
-    // 반발력 적용
-    const dotProduct = (ball.velocityX * normalX + ball.velocityY * normalY);
-    const restitution = 0.8;
+    // 위치 보정
+    ball.x += overlap * normal.x;
+    ball.y += overlap * normal.y;
 
-    ball.velocityX = ball.velocityX - (1 + restitution) * dotProduct * normalX;
-    ball.velocityY = ball.velocityY - (1 + restitution) * dotProduct * normalY;
+    // 속도 반사
+    const dotProduct = 
+      ball.velocityX * normal.x + 
+      ball.velocityY * normal.y;
+
+    ball.velocityX = ball.velocityX - (1 + PHYSICS_CONSTANTS.RESTITUTION) * dotProduct * normal.x;
+    ball.velocityY = ball.velocityY - (1 + PHYSICS_CONSTANTS.RESTITUTION) * dotProduct * normal.y;
   }
 };
 
 // 사각형 장애물 충돌 처리
 const handleRectangleObstacleCollision = (ball, obstacle) => {
-  const { MAX_SPEED, RESTITUTION } = PHYSICS_CONSTANTS;
-  
-  const obstacleLeft = obstacle.x;
-  const obstacleRight = obstacle.x + obstacle.width;
-  const obstacleTop = obstacle.y;
-  const obstacleBottom = obstacle.y + obstacle.height;
-  
-  const ballLeft = ball.x - ball.radius;
-  const ballRight = ball.x + ball.radius;
-  const ballTop = ball.y - ball.radius;
-  const ballBottom = ball.y + ball.radius;
+  // 사각형의 가장자리 좌표 계산
+  const left = obstacle.x - obstacle.width / 2;
+  const right = obstacle.x + obstacle.width / 2;
+  const top = obstacle.y - obstacle.height / 2;
+  const bottom = obstacle.y + obstacle.height / 2;
 
-  if (ballRight > obstacleLeft && 
-      ballLeft < obstacleRight && 
-      ballBottom > obstacleTop && 
-      ballTop < obstacleBottom) {
-    
-    const overlapX = Math.min(ballRight - obstacleLeft, obstacleRight - ballLeft);
-    const overlapY = Math.min(ballBottom - obstacleTop, obstacleBottom - ballTop);
+  // 공의 가장 가까운 점 찾기
+  const closestX = Math.max(left, Math.min(ball.x, right));
+  const closestY = Math.max(top, Math.min(ball.y, bottom));
 
-    if (overlapX < overlapY) {
-      // 수평 충돌
-      const direction = ball.x < (obstacle.x + obstacle.width / 2) ? -1 : 1;
-      ball.x += direction * overlapX;
-      ball.velocityX = -ball.velocityX * RESTITUTION;
-    } else {
-      // 수직 충돌
-      const direction = ball.y < (obstacle.y + obstacle.height / 2) ? -1 : 1;
-      ball.y += direction * overlapY;
-      ball.velocityY = -ball.velocityY * RESTITUTION;
-    }
+  const dx = ball.x - closestX;
+  const dy = ball.y - closestY;
+  const distance = Math.sqrt(dx * dx + dy * dy);
 
-    // 속도 제한 확인
-    const speed = Math.sqrt(ball.velocityX * ball.velocityX + ball.velocityY * ball.velocityY);
-    if (speed > MAX_SPEED) {
-      const scale = MAX_SPEED / speed;
-      ball.velocityX *= scale;
-      ball.velocityY *= scale;
-    }
+  if (distance < ball.radius) {
+    // 충돌 발생
+    const overlap = ball.radius - distance;
+    const normal = {
+      x: dx / (distance || 1), // 0으로 나누기 방지
+      y: dy / (distance || 1)
+    };
+
+    // 위치 보정
+    ball.x += overlap * normal.x;
+    ball.y += overlap * normal.y;
+
+    // 속도 반사
+    const dotProduct = 
+      ball.velocityX * normal.x + 
+      ball.velocityY * normal.y;
+
+    ball.velocityX = ball.velocityX - (1 + PHYSICS_CONSTANTS.RESTITUTION) * dotProduct * normal.x;
+    ball.velocityY = ball.velocityY - (1 + PHYSICS_CONSTANTS.RESTITUTION) * dotProduct * normal.y;
   }
 };
 
@@ -327,45 +323,35 @@ export const setupWorld = (balls, obstacles, canvasHeight) => {
   const { GRAVITY, AIR_RESISTANCE, MAX_SPEED } = PHYSICS_CONSTANTS;
 
   balls.forEach(ball => {
-    if (!ball.isActive) return;
-
-    // NaN 체크 및 초기화
-    if (isNaN(ball.velocityY)) ball.velocityY = 0;
-    if (isNaN(ball.velocityX)) ball.velocityX = 0;
-    if (isNaN(ball.x)) ball.x = ball.initialX || 50;
-    if (isNaN(ball.y)) ball.y = 50;
+    if (!ball.isActive) return;  // 비활성화된 공은 처리하지 않음
 
     // 중력 적용
     ball.velocityY += GRAVITY;
 
     // 속도 제한
-    ball.velocityY = Math.min(Math.max(ball.velocityY, -MAX_SPEED), MAX_SPEED);
     ball.velocityX = Math.min(Math.max(ball.velocityX, -MAX_SPEED), MAX_SPEED);
+    ball.velocityY = Math.min(Math.max(ball.velocityY, -MAX_SPEED), MAX_SPEED);
 
     // 공기 저항
     ball.velocityX *= AIR_RESISTANCE;
     ball.velocityY *= AIR_RESISTANCE;
 
     // 위치 업데이트
-    const nextX = ball.x + ball.velocityX;
-    const nextY = ball.y + ball.velocityY;
+    ball.x += ball.velocityX;
+    ball.y += ball.velocityY;
 
-    // 화면 경계 체크
-    if (nextY + ball.radius > canvasHeight) {
+    // 화면 경계 충돌 처리
+    if (ball.y + ball.radius > canvasHeight) {
       ball.y = canvasHeight - ball.radius;
       ball.velocityY = -ball.velocityY * PHYSICS_CONSTANTS.RESTITUTION;
-    } else {
-      ball.y = nextY;
     }
 
-    if (nextX + ball.radius > 1100) {
+    if (ball.x + ball.radius > 1100) {
       ball.x = 1100 - ball.radius;
       ball.velocityX = -ball.velocityX * PHYSICS_CONSTANTS.RESTITUTION;
-    } else if (nextX - ball.radius < 0) {
+    } else if (ball.x - ball.radius < 0) {
       ball.x = ball.radius;
       ball.velocityX = -ball.velocityX * PHYSICS_CONSTANTS.RESTITUTION;
-    } else {
-      ball.x = nextX;
     }
   });
 
